@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client"
 import "./index.css"
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
 import Login from "./pages/Login.tsx"
+import Register from "./pages/Register.tsx"
 import PrivateRoute from "./component/PrivateRoute.tsx"
 import { AuthProvider } from "./component/AuthContext.tsx"
 import Index from "./pages"
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: <Login />,
+      },
+      {
+        path: "register",
+        element: <Register />,
       },
     ],
   },
