@@ -2,12 +2,13 @@ import React from "react"
 import ReactDOM from "react-dom/client"
 import "./index.css"
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
-import Login from "./pages/Login.tsx"
-import Register from "./pages/Register.tsx"
-import PrivateRoute from "./component/PrivateRoute.tsx"
-import { AuthProvider } from "./component/AuthContext.tsx"
+import PrivateRoute from "./component/privateRoute.tsx"
+import { AuthProvider } from "./component/authContext.tsx"
 import Index from "./pages"
-import Layout from "./layouts/Layout.tsx"
+import Layout from "./layouts/layout.tsx"
+import Today from "./pages/add-today.tsx"
+import AuthCard from "./pages/authCard.tsx"
+import { CalendarView } from "./pages/calender-view.tsx"
 
 const router = createBrowserRouter([
   {
@@ -20,19 +21,32 @@ const router = createBrowserRouter([
           <PrivateRoute>
             <Index />
           </PrivateRoute>
-        ),
+        )
       },
       {
-        path: "login",
-        element: <Login />,
+        path: "auth",
+        element:
+          <AuthCard />
       },
       {
-        path: "register",
-        element: <Register />,
+        path: "dailyNote",
+        element: (
+          <PrivateRoute>
+            <Today />
+          </PrivateRoute>
+        )
       },
-    ],
+      {
+        path: "calendarReview",
+        element: (
+          <PrivateRoute>
+            <CalendarView />
+          </PrivateRoute>
+        )
+      }
+    ]
   },
-  {},
+  {}
 ])
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -40,5 +54,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <AuthProvider>
       <RouterProvider router={router} />
     </AuthProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 )

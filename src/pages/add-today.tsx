@@ -1,5 +1,4 @@
 import { SetStateAction, useState } from "react";
-import "./App.css"
 
 function Today() {
   // Utiliser useState pour gérer la valeur du champ de texte
