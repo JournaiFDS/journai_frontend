@@ -3,33 +3,37 @@ import {
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuLink
-} from "shadcn/components/navigation-menu"
-import { buttonVariants } from "shadcn/components/button"
-import { Outlet } from "react-router-dom"
-import { Link } from "react-router-dom"
+} from "shadcn/components/navigation-menu";
+import { buttonVariants } from "shadcn/components/button";
+import { FaRegCalendarAlt } from 'react-icons/fa';
+import { Outlet } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Toaster } from "shadcn/components/sonner";
 
 export default function Layout() {
   return (
-    <main className="flex flex-col h-screen">
-      <div className="flex justify-center center border-b pb-4 pt-4">
-        <NavigationMenu>
-          <NavigationMenuList className="flex space-x-20">
-            <NavigationMenuItem>
-              <Link to="/dailyNote" className={buttonVariants()}>
-                <NavigationMenuLink>DailyNote</NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link to="/calendarReview" className={buttonVariants()}>
-                <NavigationMenuLink>Calendar</NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+      <div className="h-screen flex flex-col">
+        <div className="flex justify-start center border-b pl-10 pb-4 pt-4 sticky top-0 bg-white z-10">
+          <NavigationMenu>
+            <NavigationMenuList className="flex space-x-10">
+              <FaRegCalendarAlt />
+              <NavigationMenuItem>
+                <Link to="/dailyNote" className={buttonVariants({ variant: "ghost" })}>
+                  <NavigationMenuLink>DailyNote</NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/calendarReview" className={buttonVariants({ variant: "ghost" })}>
+                  <NavigationMenuLink>Calendar</NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+        <div className="flex flex-col flex-grow">
+          <Toaster />
+          <Outlet />
+        </div>
       </div>
-      <div className="flex w-full flex-col flex-grow">
-        <Outlet />
-      </div>
-    </main>
-  )
+  );
 }

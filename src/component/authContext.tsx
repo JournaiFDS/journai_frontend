@@ -1,4 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -15,14 +17,13 @@ export const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate(); // Utilisez useNavigate pour la navigation
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [db, setDb] = useState<IDBDatabase | null>(null);
 
   useEffect(() => {
-    // Fonction d'initialisation de la base de données
     const initializeDB = async () => {
       try {
-        // Ouvrir ou créer la base de données
         const indexedDB = window.indexedDB || (window as any).mozIndexedDB || (window as any).webkitIndexedDB || (window as any).msIndexedDB;
         const request = indexedDB.open('myDatabase', 1);
 
@@ -46,7 +47,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Appel de la fonction d'initialisation de la base de données
     initializeDB();
   }, []);
 
@@ -58,11 +58,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const request = store.add(newUser);
 
     request.onsuccess = () => {
-      console.log('User registered successfully');
+      console.log('Utilisateur enregistré avec succès');
+      toast('Utilisateur enregistré avec succès', {
+        description: `Le ${new Date().toLocaleDateString()}, à ${new Date().toLocaleTimeString()}`,
+        action: {
+          label: 'Valider',
+          onClick: () => {},
+        },
+      });
+      navigate('/login'); // Naviguer vers la page de connexion après l'enregistrement
     };
 
     request.onerror = (event: any) => {
-      console.error('Error registering user:', event.target.errorCode);
+      console.error('Erreur lors de l\'enregistrement de l\'utilisateur:', event.target.errorCode);
+      toast('Erreur lors de l\'enregistrement de l\'utilisateur', {
+        description: `Le ${new Date().toLocaleDateString()}, à ${new Date().toLocaleTimeString()}`,
+        action: {
+          label: 'Valider',
+          onClick: () => {},
+        },
+      });
     };
   };
 
@@ -77,13 +92,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const user = event.target.result;
       if (user && user.password === password) {
         setIsAuthenticated(true);
+        toast('Connexion réussie', {
+          description: `Le ${new Date().toLocaleDateString()}, à ${new Date().toLocaleTimeString()}`,
+          action: {
+            label: 'Valider',
+            onClick: () => {},
+          },
+        });
       } else {
         console.log('Identifiants incorrects');
+        toast('Identifiants incorrects', {
+          description: `Le ${new Date().toLocaleDateString()}, à ${new Date().toLocaleTimeString()}`,
+          action: {
+            label: 'Valider',
+            onClick: () => {},
+          },
+        });
       }
     };
 
     request.onerror = (event: any) => {
-      console.error('Error logging in:', event.target.errorCode);
+      console.error('Erreur lors de la connexion:', event.target.errorCode);
+      toast('Erreur lors de la connexion', {
+        description: `Le ${new Date().toLocaleDateString()}, à ${new Date().toLocaleTimeString()}`,
+        action: {
+          label: 'Valider',
+          onClick: () => {},
+        },
+      });
     };
   };
 

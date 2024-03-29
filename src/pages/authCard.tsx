@@ -1,4 +1,3 @@
-import React from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "shadcn/components/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "shadcn/components/tabs"
 import { Button } from "shadcn/components/button"
@@ -27,22 +26,21 @@ const formSchema = z.object({
 })
 
 export default function AuthCard() {
-  const [authMode] = React.useState("login")
   const { login, register } = useAuth()
   const form = useForm<{ username: string; password: string; }>({
     resolver: zodResolver(formSchema)
   })
 
-  const onSubmit = (data: { username: string; password: string; }) => {
-    if (authMode === "login") {
-      login(data.username, data.password)
-    } else {
-      register(data.username, data.password)
-    }
+  const handleLogin = (data: { username: string; password: string; }) => {
+    login(data.username, data.password)
+  }
+
+  const handleRegister = (data: { username: string; password: string; }) => {
+    register(data.username, data.password)
   }
 
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center items-center mt-20">
       <Tabs defaultValue="login" className="w-[400px]">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Connexion</TabsTrigger>
@@ -58,7 +56,7 @@ export default function AuthCard() {
             </CardHeader>
             <CardContent className="items-start">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col items-start">
+                <form onSubmit={form.handleSubmit(handleLogin)} className="flex flex-col items-start">
                   <FormField
                     control={form.control}
                     name="username"
@@ -95,7 +93,7 @@ export default function AuthCard() {
               </Form>
             </CardContent>
             <CardFooter className="justify-center">
-              <Button type="submit" onClick={form.handleSubmit(onSubmit)} disabled={!form.formState.isValid}>
+              <Button type="submit" onClick={form.handleSubmit(handleLogin)} disabled={!form.formState.isValid}>
                 Se connecter
               </Button>
             </CardFooter>
@@ -111,7 +109,7 @@ export default function AuthCard() {
             </CardHeader>
             <CardContent className="items-start">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col items-start">
+                <form onSubmit={form.handleSubmit(handleRegister)} className="flex flex-col items-start">
                   <FormField
                     control={form.control}
                     name="username"
@@ -148,7 +146,7 @@ export default function AuthCard() {
               </Form>
             </CardContent>
             <CardFooter className="justify-center">
-              <Button type="submit" onClick={form.handleSubmit(onSubmit)} disabled={!form.formState.isValid}>
+              <Button type="submit" onClick={form.handleSubmit(handleRegister)} disabled={!form.formState.isValid}>
                 S'inscrire
               </Button>
             </CardFooter>

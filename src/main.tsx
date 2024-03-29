@@ -1,14 +1,14 @@
-import React from "react"
-import ReactDOM from "react-dom/client"
-import "./index.css"
-import { RouterProvider, createBrowserRouter } from "react-router-dom"
-import PrivateRoute from "./component/privateRoute.tsx"
-import { AuthProvider } from "./component/authContext.tsx"
-import Index from "./pages"
-import Layout from "./layouts/layout.tsx"
-import Today from "./pages/add-today.tsx"
-import AuthCard from "./pages/authCard.tsx"
-import { CalendarView } from "./pages/calender-view.tsx"
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import PrivateRoute from "./component/privateRoute.tsx";
+import { AuthProvider } from "./component/authContext.tsx";
+import Index from "./pages";
+import Layout from "./layouts/layout.tsx";
+import Today from "./pages/add-today.tsx";
+import AuthCard from "./pages/authCard.tsx";
+import { CalendarView } from "./pages/calender-view.tsx";
 
 const router = createBrowserRouter([
   {
@@ -47,7 +47,7 @@ const router = createBrowserRouter([
     ]
   },
   {}
-])
+]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -55,4 +55,4 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <RouterProvider router={router} />
     </AuthProvider>
   </React.StrictMode>
-)
+);
