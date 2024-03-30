@@ -1,6 +1,6 @@
 import { SetStateAction, useState } from "react";
 
-function Today() {
+function DailyNote() {
   // Utiliser useState pour gérer la valeur du champ de texte
   const [texte, setTexte] = useState("")
 
@@ -34,4 +34,4 @@ function Today() {
   );
 }
 
-export default Today;
+export default DailyNote;

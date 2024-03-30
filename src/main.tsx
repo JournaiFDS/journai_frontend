@@ -1,14 +1,14 @@
-import React from "react";
+import React, { useState } from "react"
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import PrivateRoute from "./component/privateRoute.tsx";
-import { AuthProvider } from "./component/authContext.tsx";
-import Index from "./pages";
 import Layout from "./layouts/layout.tsx";
-import Today from "./pages/add-today.tsx";
+import DailyNote from "./pages/dailyNote.tsx";
 import AuthCard from "./pages/authCard.tsx";
-import { CalendarView } from "./pages/calender-view.tsx";
+import { CalendarView } from "./pages/calendarView.tsx";
+import Profile from "./pages/profile.tsx"
+import { UserContext } from "./component/userContext.tsx";
 
 const router = createBrowserRouter([
   {
@@ -19,7 +19,7 @@ const router = createBrowserRouter([
         path: "/",
         element: (
           <PrivateRoute>
-            <Index />
+            <DailyNote />
           </PrivateRoute>
         )
       },
@@ -29,15 +29,23 @@ const router = createBrowserRouter([
           <AuthCard />
       },
       {
-        path: "dailyNote",
+        path: "profile",
         element: (
           <PrivateRoute>
-            <Today />
+            <Profile />
           </PrivateRoute>
         )
       },
       {
-        path: "calendarReview",
+        path: "dailyNote",
+        element: (
+          <PrivateRoute>
+            <DailyNote />
+          </PrivateRoute>
+        )
+      },
+      {
+        path: "calendarView",
         element: (
           <PrivateRoute>
             <CalendarView />
@@ -49,10 +57,15 @@ const router = createBrowserRouter([
   {}
 ]);
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  </React.StrictMode>
-);
+export const Main = () => {
+  const [userId, setUserId] = useState(localStorage.getItem('userId') || "");
+  return (
+    <React.StrictMode>
+      <UserContext.Provider value={{ userId, setUserId }}>
+        <RouterProvider router={router} />
+      </UserContext.Provider>
+    </React.StrictMode>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById("root")!).render(<Main />);

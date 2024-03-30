@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useContext } from "react"
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from './useAuth';
+import { UserContext } from "./userContext.tsx"
 
 export default function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { userId } = useContext(UserContext);
+  const isAuthenticated = userId !== "";
+  console.log(isAuthenticated)
   const location = useLocation();
 
   return isAuthenticated ? (
