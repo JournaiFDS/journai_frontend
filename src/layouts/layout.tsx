@@ -12,18 +12,17 @@ import { Toaster } from "shadcn/components/sonner"
 import { UserContext } from "../component/userContext.tsx"
 import { useContext } from "react"
 
-
 export default function Layout() {
-  const { userId  } = useContext(UserContext);
+  const { userId } = useContext(UserContext)
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex justify-start center border-b pl-10 pb-4 pt-4 sticky top-0 bg-white z-10">
+      <div className="flex justify-between center border-b px-10 pb-4 pt-4 sticky top-0 bg-white z-10">
         <NavigationMenu>
           <NavigationMenuList className="flex space-x-10">
             <NavigationMenuItem>
               <Link to="/dailyNote" className={buttonVariants({ variant: "ghost" })}>
-                <FaRegCalendarAlt />
+                <FaRegCalendarAlt style={{ fill: "#7c3aed" }} />
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
@@ -32,19 +31,21 @@ export default function Layout() {
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link to="/calendarReview" className={buttonVariants({ variant: "ghost" })}>
+              <Link to="/calendarView" className={buttonVariants({ variant: "ghost" })}>
                 <NavigationMenuLink>Calendar</NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
-            <NavigationMenuList className="flex space-x-10 justify-end">
-              {userId !== "" && (
-                <NavigationMenuItem>
-                  <Link to="/profile" className={buttonVariants({ variant: "ghost" })}>
-                    <FaUser />
-                  </Link>
-                </NavigationMenuItem>
-              )}
-            </NavigationMenuList>
+          </NavigationMenuList>
+        </NavigationMenu>
+        <NavigationMenu>
+          <NavigationMenuList className="flex space-x-10">
+            {userId !== "" && (
+              <NavigationMenuItem>
+                <Link to="/profile" className={buttonVariants({ variant: "ghost" })}>
+                  <FaUser style={{ fill: "#7c3aed" }} />
+                </Link>
+              </NavigationMenuItem>
+            )}
           </NavigationMenuList>
         </NavigationMenu>
       </div>

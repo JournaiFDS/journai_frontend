@@ -6,9 +6,9 @@ import PrivateRoute from "./component/privateRoute.tsx";
 import Layout from "./layouts/layout.tsx";
 import DailyNote from "./pages/dailyNote.tsx";
 import AuthCard from "./pages/authCard.tsx";
-import { CalendarView } from "./pages/calendarView.tsx";
 import Profile from "./pages/profile.tsx"
 import { UserContext } from "./component/userContext.tsx";
+import CalendarView from "./pages/calendarView.tsx"
 
 const router = createBrowserRouter([
   {
@@ -47,9 +47,9 @@ const router = createBrowserRouter([
       {
         path: "calendarView",
         element: (
-          <PrivateRoute>
+          // <PrivateRoute>
             <CalendarView />
-          </PrivateRoute>
+          // </PrivateRoute>
         )
       }
     ]

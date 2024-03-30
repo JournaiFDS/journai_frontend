@@ -1,35 +1,45 @@
-import { SetStateAction, useState } from "react";
+import { useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "shadcn/components/card"
+import { Textarea } from "shadcn/components/textarea";
+import { Button } from "shadcn/components/button";
 
 function DailyNote() {
-  // Utiliser useState pour gérer la valeur du champ de texte
-  const [texte, setTexte] = useState("")
+  const [text, setText] = useState("");
 
-  // Fonction pour gérer le changement de texte
-  const handleChange = (event: { target: { value: SetStateAction<string>; }; }) => {
-    setTexte(event.target.value);
+  const handleChange = (event: any) => {
+    setText(event.target.value);
   };
 
-  // Fonction pour gérer la soumission
-  const handleSubmit = (event: { preventDefault: () => void; }) => {
-    event.preventDefault(); // Empêcher le rechargement de la page
-    alert('Texte soumis : ' + texte);
+  const handleSubmit = (event: any) => {
+    event.preventDefault();
+    alert('Texte soumis : ' + text);
     // Ajoutez ici la logique pour ce que vous voulez faire avec le texte
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h2>Page d'accueil</h2>
-        <form onSubmit={handleSubmit}>
-          <textarea
-            value={texte}
-            onChange={handleChange}
-            style={{ width: '80%', height: '150px', margin: '20px 0' }}
-          />
-          <br />
-          <button type="submit">Submit</button>
-        </form>
-      </header>
+    <div className="flex justify-center items-center mt-40">
+      <Card className="mx-auto px-5 py-5">
+        <CardHeader>
+          <CardTitle>Résumé de votre journée</CardTitle>
+          <CardDescription>
+            Écrivez ce que vous avez fait aujourd'hui en ajoutant le plus de détails pertinents possible.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="items-start">
+          <form onSubmit={handleSubmit}>
+            <Textarea
+              value={text}
+              onChange={handleChange}
+              style={{ width: '100%', height: '150px', margin: '20px 0' }}
+            />
+          </form>
+        </CardContent>
+        <CardFooter className="justify-center">
+          <Button onClick={handleSubmit}>
+            🔬 Analyser la journée
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

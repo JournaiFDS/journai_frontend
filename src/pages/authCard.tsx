@@ -30,7 +30,7 @@ import { cn } from "../../shadcn/lib.ts"
 import { format } from "date-fns"
 
 
-const formSchema = z.object({
+const formRegisterSchema = z.object({
   username: z.string().min(2, {
     message: "Le nom d'utilisateur doit contenir au moins 2 caractères."
   }),
@@ -41,6 +41,15 @@ const formSchema = z.object({
     const date = new Date()
     date.setFullYear(date.getFullYear() - 18)
     return value < date
+  })
+})
+
+const formLoginSchema = z.object({
+  username: z.string().min(2, {
+    message: "Le nom d'utilisateur doit contenir au moins 2 caractères."
+  }),
+  password: z.string().min(6, {
+    message: "Le mot de passe doit contenir au moins 6 caractères."
   })
 })
 
@@ -72,7 +81,7 @@ export default function AuthCard() {
           objectStore.createIndex("username", "username", { unique: true })
           objectStore.createIndex("password", "password", { unique: false })
           objectStore.createIndex("birthdate", "birthdate", { unique: false })
-          objectStore.createIndex("dailyNotes", "dailyNotes", { unique: false })
+          objectStore.createIndex("dailyData", "dailyData", { unique: false })
         }
       } catch (error) {
         console.error("IndexedDB initialization error:", error)
@@ -82,17 +91,22 @@ export default function AuthCard() {
     initializeDB()
   }, [])
 
-  const register = (username: string, password: string, birthdate: Date, dailyNotes: Map<Date, [number, string]>)  => {
-    if (!db) return
-    const transaction = db.transaction(["users"], "readwrite")
-    const store = transaction.objectStore("users")
+  const register = (username: string, password: string, birthdate: Date, dailyData: Map<Date, { rate: number, short_summary: string, tags: string[] }>) => {
+    if (!db) return;
+    const transaction = db.transaction(["users"], "readwrite");
+    const store = transaction.objectStore("users");
+    // Convertir la Map en un objet JavaScript
+    const dailyDataObj: { [key: string]: { rate: number, short_summary: string, tags: string[] } } = {};
+    dailyData.forEach((value, key) => {
+      dailyDataObj[key.toISOString()] = { rate: value.rate, short_summary: value.short_summary, tags: value.tags };
+    });
     const newUser = {
       username,
       password,
       birthdate,
-      dailyNotes: JSON.stringify(Array.from(dailyNotes.entries()))
-    }
-    const request = store.add(newUser)
+      dailyData: dailyDataObj
+    };
+    const request = store.add(newUser);
 
     request.onsuccess = () => {
       console.log("Utilisateur enregistré avec succès")
@@ -167,8 +181,12 @@ export default function AuthCard() {
     }
   }
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const formRegister = useForm<z.infer<typeof formRegisterSchema>>({
+    resolver: zodResolver(formRegisterSchema),
+  })
+
+  const formLogin = useForm<z.infer<typeof formLoginSchema>>({
+    resolver: zodResolver(formLoginSchema),
   })
 
   const handleLogin = (data: { username: string; password: string; }) => {
@@ -176,8 +194,8 @@ export default function AuthCard() {
   }
 
   const handleRegister = (data: { username: string; password: string; birthdate: Date; }) => {
-    const dailyNotes = new Map()
-    register(data.username, data.password, data.birthdate, dailyNotes)
+    const dailyData = new Map()
+    register(data.username, data.password, data.birthdate, dailyData)
   }
 
   return (
@@ -196,10 +214,10 @@ export default function AuthCard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="items-start">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleLogin)} className="flex flex-col items-start">
+              <Form {...formLogin}>
+                <form onSubmit={formLogin.handleSubmit(handleLogin)} className="flex flex-col items-start">
                   <FormField
-                    control={form.control}
+                    control={formLogin.control}
                     name="username"
                     render={({ field }) => (
                       <FormItem className="mb-4">
@@ -215,7 +233,7 @@ export default function AuthCard() {
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={formLogin.control}
                     name="password"
                     render={({ field }) => (
                       <FormItem>
@@ -234,7 +252,7 @@ export default function AuthCard() {
               </Form>
             </CardContent>
             <CardFooter className="justify-center">
-              <Button type="submit" onClick={form.handleSubmit(handleLogin)} disabled={!form.formState.isValid}>
+              <Button type="submit" onClick={formLogin.handleSubmit(handleLogin)} disabled={!formLogin.formState.isValid}>
                 Se connecter
               </Button>
             </CardFooter>
@@ -249,10 +267,10 @@ export default function AuthCard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="items-start">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleRegister)} className="flex flex-col items-start">
+              <Form {...formRegister}>
+                <form onSubmit={formRegister.handleSubmit(handleRegister)} className="flex flex-col items-start">
                   <FormField
-                    control={form.control}
+                    control={formRegister.control}
                     name="username"
                     render={({ field }) => (
                       <FormItem className="mb-4">
@@ -268,7 +286,7 @@ export default function AuthCard() {
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={formRegister.control}
                     name="password"
                     render={({ field }) => (
                       <FormItem className="mb-7">
@@ -284,7 +302,7 @@ export default function AuthCard() {
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={formRegister.control}
                     name="birthdate"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
@@ -335,7 +353,7 @@ export default function AuthCard() {
               </Form>
             </CardContent>
             <CardFooter className="justify-center">
-              <Button type="submit" onClick={form.handleSubmit(handleRegister)} disabled={!form.formState.isValid}>
+              <Button type="submit" onClick={formRegister.handleSubmit(handleRegister)} disabled={!formRegister.formState.isValid}>
                 S'inscrire
               </Button>
             </CardFooter>
