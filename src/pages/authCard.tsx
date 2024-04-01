@@ -6,7 +6,7 @@ import { CalendarIcon } from "lucide-react"
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
+  PopoverTrigger
 } from "shadcn/components/popover"
 import { Button } from "shadcn/components/button"
 import {
@@ -18,7 +18,7 @@ import {
   FormMessage,
   FormItem
 } from "shadcn/components/form"
-import { fr } from 'date-fns/locale';
+import { fr } from "date-fns/locale"
 import { Input } from "shadcn/components/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -54,10 +54,10 @@ const formLoginSchema = z.object({
 })
 
 export default function AuthCard() {
-  const [db, setDb] = useState<IDBDatabase | null>(null);
-  const [activeTab, setActiveTab] = useState('login');
-  const navigate = useNavigate();
-  const {  setUserId } = useContext(UserContext);
+  const [db, setDb] = useState<IDBDatabase | null>(null)
+  const [activeTab, setActiveTab] = useState("login")
+  const navigate = useNavigate()
+  const { setUserId } = useContext(UserContext)
 
 
   useEffect(() => {
@@ -91,22 +91,26 @@ export default function AuthCard() {
     initializeDB()
   }, [])
 
-  const register = (username: string, password: string, birthdate: Date, dailyData: Map<Date, { rate: number, short_summary: string, tags: string[] }>) => {
-    if (!db) return;
-    const transaction = db.transaction(["users"], "readwrite");
-    const store = transaction.objectStore("users");
+  const register = (username: string, password: string, birthdate: Date, dailyData: Map<Date, {
+    rate: number,
+    short_summary: string,
+    tags: string[]
+  }>) => {
+    if (!db) return
+    const transaction = db.transaction(["users"], "readwrite")
+    const store = transaction.objectStore("users")
     // Convertir la Map en un objet JavaScript
-    const dailyDataObj: { [key: string]: { rate: number, short_summary: string, tags: string[] } } = {};
+    const dailyDataObj: { [key: string]: { rate: number, short_summary: string, tags: string[] } } = {}
     dailyData.forEach((value, key) => {
-      dailyDataObj[key.toISOString()] = { rate: value.rate, short_summary: value.short_summary, tags: value.tags };
-    });
+      dailyDataObj[key.toISOString()] = { rate: value.rate, short_summary: value.short_summary, tags: value.tags }
+    })
     const newUser = {
       username,
       password,
       birthdate,
       dailyData: dailyDataObj
-    };
-    const request = store.add(newUser);
+    }
+    const request = store.add(newUser)
 
     request.onsuccess = () => {
       console.log("Utilisateur enregistré avec succès")
@@ -118,7 +122,7 @@ export default function AuthCard() {
           }
         }
       })
-      setActiveTab('login');
+      setActiveTab("login")
     }
 
     request.onerror = (event: any) => {
@@ -154,7 +158,7 @@ export default function AuthCard() {
           }
         })
         setUserId(user.id)
-        navigate("/dailyNote");
+        navigate("/dailyNote")
       } else {
         console.log("Identifiants incorrects")
         toast("Identifiants incorrects", {
@@ -182,11 +186,11 @@ export default function AuthCard() {
   }
 
   const formRegister = useForm<z.infer<typeof formRegisterSchema>>({
-    resolver: zodResolver(formRegisterSchema),
+    resolver: zodResolver(formRegisterSchema)
   })
 
   const formLogin = useForm<z.infer<typeof formLoginSchema>>({
-    resolver: zodResolver(formLoginSchema),
+    resolver: zodResolver(formLoginSchema)
   })
 
   const handleLogin = (data: { username: string; password: string; }) => {
@@ -202,8 +206,8 @@ export default function AuthCard() {
     <div className="flex justify-center items-center mt-20">
       <Tabs value={activeTab} className="w-[400px]">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="login" onClick={() => setActiveTab('login')}>Connexion</TabsTrigger>
-          <TabsTrigger value="register" onClick={() => setActiveTab('register')}>Inscription</TabsTrigger>
+          <TabsTrigger value="login" onClick={() => setActiveTab("login")}>Connexion</TabsTrigger>
+          <TabsTrigger value="register" onClick={() => setActiveTab("register")}>Inscription</TabsTrigger>
         </TabsList>
         <TabsContent value="login">
           <Card className="mx-auto">
@@ -252,7 +256,8 @@ export default function AuthCard() {
               </Form>
             </CardContent>
             <CardFooter className="justify-center">
-              <Button type="submit" onClick={formLogin.handleSubmit(handleLogin)} disabled={!formLogin.formState.isValid}>
+              <Button type="submit" onClick={formLogin.handleSubmit(handleLogin)}
+                      disabled={!formLogin.formState.isValid}>
                 Se connecter
               </Button>
             </CardFooter>
@@ -342,7 +347,7 @@ export default function AuthCard() {
                           </PopoverContent>
                         </Popover>
                         <FormDescription>
-                          Votre date de naissance sert à calculer votre âge. <br/>
+                          Votre date de naissance sert à calculer votre âge. <br />
                           (Vous devez avoir au moins 18 ans pour vous inscrire)
                         </FormDescription>
                         <FormMessage />
@@ -353,7 +358,8 @@ export default function AuthCard() {
               </Form>
             </CardContent>
             <CardFooter className="justify-center">
-              <Button type="submit" onClick={formRegister.handleSubmit(handleRegister)} disabled={!formRegister.formState.isValid}>
+              <Button type="submit" onClick={formRegister.handleSubmit(handleRegister)}
+                      disabled={!formRegister.formState.isValid}>
                 S'inscrire
               </Button>
             </CardFooter>

@@ -27,12 +27,12 @@ export default function Layout() {
             </NavigationMenuItem>
             <NavigationMenuItem>
               <Link to="/dailyNote" className={buttonVariants({ variant: "ghost" })}>
-                <NavigationMenuLink>DailyNote</NavigationMenuLink>
+                <NavigationMenuLink>Note quotidienne</NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <Link to="/calendarView" className={buttonVariants({ variant: "ghost" })}>
-                <NavigationMenuLink>Calendar</NavigationMenuLink>
+                <NavigationMenuLink>Calendrier</NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
