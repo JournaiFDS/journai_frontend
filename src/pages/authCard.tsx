@@ -25,7 +25,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
-import { UserContext } from "../component/userContext.tsx"
+import { setUser, UserContext } from "../component/userContext.tsx"
 import { cn } from "../../shadcn/lib.ts"
 import { format } from "date-fns"
 
@@ -77,11 +77,23 @@ export default function AuthCard() {
 
         request.onupgradeneeded = (event: any) => {
           const database = event.target.result
-          const objectStore = database.createObjectStore("users", { keyPath: "id", autoIncrement: true })
-          objectStore.createIndex("username", "username", { unique: true })
-          objectStore.createIndex("password", "password", { unique: false })
-          objectStore.createIndex("birthdate", "birthdate", { unique: false })
-          objectStore.createIndex("dailyData", "dailyData", { unique: false })
+
+          if (!database.objectStoreNames.contains('users')) {
+            const objectStore = database.createObjectStore("users", { keyPath: "userId", autoIncrement: true });
+            objectStore.createIndex("username", "username", { unique: true });
+            objectStore.createIndex("password", "password", { unique: false });
+            objectStore.createIndex("birthdate", "birthdate", { unique: false });
+          }
+
+          if (!database.objectStoreNames.contains('dailyNotes')) {
+            const dailyNotesStore = database.createObjectStore("dailyNotes", { keyPath: "noteId", autoIncrement: true });
+            dailyNotesStore.createIndex("userId", "userId", { unique: false });
+            dailyNotesStore.createIndex("date", "date", { unique: false });
+            dailyNotesStore.createIndex("day_summary", "day_summary", { unique: false });
+            dailyNotesStore.createIndex("rate", "rate", { unique: false });
+            dailyNotesStore.createIndex("tags", "tags", { unique: false });
+            dailyNotesStore.createIndex("short_summary", "short_summary", { unique: false });
+          }
         }
       } catch (error) {
         console.error("IndexedDB initialization error:", error)
@@ -149,6 +161,7 @@ export default function AuthCard() {
     request.onsuccess = (event: any) => {
       const user = event.target.result
       if (user && user.password === password) {
+        setUser(user.userId, setUserId);
         toast("Connexion réussie", {
           description: `Le ${new Date().toLocaleDateString()}, à ${new Date().toLocaleTimeString()}`,
           action: {
@@ -157,7 +170,6 @@ export default function AuthCard() {
             }
           }
         })
-        setUserId(user.id)
         navigate("/dailyNote")
       } else {
         console.log("Identifiants incorrects")
@@ -212,7 +224,7 @@ export default function AuthCard() {
         <TabsContent value="login">
           <Card className="mx-auto">
             <CardHeader>
-              <CardTitle>Connection</CardTitle>
+              <CardTitle>Connexion</CardTitle>
               <CardDescription>
                 Connectez-vous pour accéder à votre compte pour pouvoir enregistrer et suivre vos notes.
               </CardDescription>
@@ -276,38 +288,6 @@ export default function AuthCard() {
                 <form onSubmit={formRegister.handleSubmit(handleRegister)} className="flex flex-col items-start">
                   <FormField
                     control={formRegister.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem className="mb-4">
-                        <FormLabel>Nom d'utilisateur</FormLabel>
-                        <FormControl>
-                          <Input type="text" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          C'est votre nom d'utilisateur public.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={formRegister.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem className="mb-7">
-                        <FormLabel>Mot de passe</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Le mot de passe doit contenir au moins 6 caractères.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={formRegister.control}
                     name="birthdate"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
@@ -349,6 +329,38 @@ export default function AuthCard() {
                         <FormDescription>
                           Votre date de naissance sert à calculer votre âge. <br />
                           (Vous devez avoir au moins 18 ans pour vous inscrire)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={formRegister.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem className="mb-4">
+                        <FormLabel>Nom d'utilisateur</FormLabel>
+                        <FormControl>
+                          <Input type="text" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          C'est votre nom d'utilisateur public.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={formRegister.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem className="mb-7">
+                        <FormLabel>Mot de passe</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Le mot de passe doit contenir au moins 6 caractères.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

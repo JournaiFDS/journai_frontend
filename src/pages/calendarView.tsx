@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { format, parseISO, subMonths } from "date-fns"
+import { useState, useEffect, useContext } from "react"
+import { format, subMonths } from "date-fns"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "shadcn/components/tooltip"
 import {
   Dialog,
@@ -17,86 +17,65 @@ import { fr } from "date-fns/locale"
 import { DayPicker } from "react-day-picker"
 import { cn } from "../../shadcn/lib.ts"
 import { Button, buttonVariants } from "shadcn/components/button.tsx"
-import { Card } from "shadcn/components/card.tsx"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "shadcn/components/card.tsx"
 import { Separator } from "shadcn/components/separator.tsx"
 import { useNavigate } from "react-router-dom"
+import { getDayColor, getDayTextColor } from "../utils/utils.tsx"
+import { UserContext } from "../component/userContext.tsx"
+import { Skeleton } from "shadcn/components/skeleton.tsx"
 
 type DayData = {
   date: string;
+  day_summary: string;
   rate: number;
   short_summary: string;
   tags: string[];
 };
 
 function CalendarView() {
+  const [db, setDb] = useState<IDBDatabase | null>(null)
+  const { userId } = useContext(UserContext)
+  const [isLoadingData, setIsLoadingData] = useState(true)
   const [dailyData, setDailyData] = useState<DayData[]>()
+  const [hoveredDate, setHoveredDate] = useState<Date>()
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedDay, setSelectedDay] = useState<DayData>()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const navigate = useNavigate()
 
-  // Simuler l'obtention des données du backend
   useEffect(() => {
-    const data: DayData[] = [
-      {
-        date: "2024-03-20",
-        rate: 8.5,
-        short_summary: "Une journée ensoleillée à la plage avec des amis.",
-        tags: ["plage", "soleil", "amis"]
-      },
-      {
-        date: "2024-03-21",
-        rate: 4.5,
-        short_summary: "Exploration d'une nouvelle ville et découverte de ses trésors cachés.",
-        tags: ["voyage", "exploration", "nouvelle ville"]
-      },
-      {
-        date: "2024-03-22",
-        rate: 7.5,
-        short_summary: "Randonnée en montagne avec vue panoramique sur la vallée.",
-        tags: ["randonnée", "montagne", "nature"]
-      },
-      {
-        date: "2024-03-23",
-        rate: 8.5,
-        short_summary: "Une journée de détente au spa avec massage et soins de la peau.",
-        tags: ["spa", "détente", "massage"]
-      },
-      {
-        date: "2024-03-24",
-        rate: 5.5,
-        short_summary: "Découverte d'une nouvelle cuisine ethnique avec des plats épicés et exotiques.",
-        tags: ["cuisine", "nouvelle expérience", "épicé"]
-      },
-      {
-        date: "2024-03-25",
-        rate: 1.5,
-        short_summary: "Une journée pluvieuse à la maison avec des films et des snacks.",
-        tags: ["pluie", "films", "détente"]
-      },
-      {
-        date: "2024-03-26",
-        rate: 9.5,
-        short_summary: "Une journée de bénévolat dans un refuge animalier, avec beaucoup de câlins de chiots.",
-        tags: ["bénévolat", "animaux", "chiots"]
+    const initializeDB = async () => {
+      const request = indexedDB.open("myDatabase", 1)
+      request.onsuccess = (event: any) => {
+        setDb(event.target.result)
+        if (userId !== "") {
+          setIsLoadingData(false)
+        }
       }
-    ]
+    }
+    initializeDB()
+  }, [userId])
 
-    setDailyData(data)
-  }, [])
+  useEffect(() => {
+    const fetchDailyNotes = async () => {
+      if (!db || !userId) return
+      const transaction = db.transaction(["dailyNotes"], "readonly")
+      const store = transaction.objectStore("dailyNotes")
+      const index = store.index("userId")
+      const request = index.getAll(IDBKeyRange.only(userId))
 
-  const getDayColor = (rate: number) => {
-    if (rate === -1) return "hsl(0, 0%, 100%)" // Blanc pour les jours sans note (null)
-    // Calculer la teinte en fonction de la note (0-10)
-    const hue = 120 * (rate / 10) // Calcul de la teinte de 0 à 120 (rouge à vert)
-    return `hsl(${hue}, 100%, 85%, 60%)` // Saturation et luminosité fixes
-  }
+      request.onsuccess = (event: any) => {
+        const dailyNotes = event.target.result
+        setDailyData(dailyNotes)
+      }
 
-  const getDayTextColor = (rate: number) => {
-    if (rate === -1) return "hsl(0, 0%, 100%)"
-    const hue = 120 * (rate / 10)
-    return `hsl(${hue}, 100%, 30%)`
-  }
+      request.onerror = (event: any) => {
+        console.error("Erreur lors de la récupération des notes quotidiennes:", event.target.error)
+      }
+    }
+
+    fetchDailyNotes()
+  }, [db, userId])
 
   const getDayStyle = (rate: number) => {
     const backgroundColor = getDayColor(rate)
@@ -133,12 +112,13 @@ function CalendarView() {
   const nineRateStyle = getDayStyle(9)
   const tenRateStyle = getDayStyle(10)
 
-  const handleDayClick = () => {
+  const handleDayClick = (date: Date) => {
+    setSelectedDate(date)
     setIsDialogOpen(true)
   }
 
   const handleDayMouseEnter = (date: Date) => {
-    setSelectedDate(date)
+    setHoveredDate(date)
     const dayData = dailyData?.find(d => format(new Date(d.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd"))
     if (dayData) {
       setSelectedDay(dayData)
@@ -156,79 +136,105 @@ function CalendarView() {
       <div className="flex justify-center items-center">
         <Dialog open={isDialogOpen} onOpenChange={handleCloseClick}>
           <Card>
-            <TooltipProvider delayDuration={100}>
-              <Tooltip>
-                <TooltipTrigger>
-                  <DayPicker
-                    showOutsideDays={true}
-                    defaultMonth={subMonths(new Date(), 1)}
-                    style={{
-                      "--rdp-cell-size": "90px",
-                      "--rdp-caption-font-size": "30px",
-                      "--rdp-background-color": "#f3f4f6",
-                      "fontSize": "22px"
-                    }}
-                    classNames={{
-                      nav_button: cn(
-                        buttonVariants({ variant: "outline" }),
-                        "h-10 w-10"
-                      ),
-                      day: cn(
-                        buttonVariants({ variant: "ghost" }),
-                        "h-16 w-16 active:font-bold hover:font-bold"
-                      )
-                    }}
-                    locale={fr}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    numberOfMonths={2}
-                    onDayClick={handleDayClick}
-                    onDayMouseEnter={handleDayMouseEnter}
-                    onDayMouseLeave={() => setSelectedDate(undefined)}
-                    modifiers={{
-                      rate_0: zeroRateDays,
-                      rate_1: oneRateDays,
-                      rate_2: twoRateDays,
-                      rate_3: threeRateDays,
-                      rate_4: fourRateDays,
-                      rate_5: fiveRateDays,
-                      rate_6: sixRateDays,
-                      rate_7: sevenRateDays,
-                      rate_8: eightRateDays,
-                      rate_9: nineRateDays,
-                      rate_10: tenRateDays
-                    }}
-                    modifiersStyles={{
-                      rate_0: zeroRateStyle,
-                      rate_1: oneRateStyle,
-                      rate_2: twoRateStyle,
-                      rate_3: threeRateStyle,
-                      rate_4: fourRateStyle,
-                      rate_5: fiveRateStyle,
-                      rate_6: sixRateStyle,
-                      rate_7: sevenRateStyle,
-                      rate_8: eightRateStyle,
-                      rate_9: nineRateStyle,
-                      rate_10: tenRateStyle
-                    }}
-                  />
-                </TooltipTrigger>
-                {selectedDate && (
-                  <TooltipContent side="bottom" align="center"
-                                  style={{
-                                    borderColor: getDayTextColor(selectedDay?.rate || -1),
-                                    backgroundColor: getDayColor(selectedDay?.rate || -1),
-                                    fontSize: "x-large",
-                                    padding: 15
-                                  }}>
-                    {format(selectedDate, "EEEE d MMMM", { locale: fr }).charAt(0).toUpperCase() + format(selectedDate, "EEEE d MMMM", { locale: fr }).slice(1)} {selectedDay !== undefined ? <>: <b
-                    style={{ color: getDayTextColor(selectedDay?.rate || -1) }}>{selectedDay?.rate || -1}/10</b></> : ""}
-                    <TooltipArrow />
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+            {isLoadingData ? (
+              <>
+                <CardHeader>
+                  <div className="flex space-x-10 justify-between">
+                    <div>
+                      <CardTitle>Calendrier</CardTitle>
+                    </div>
+                  </div>
+                  <CardDescription>
+                    Chargement du calendrier...
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="items-start">
+                  <div className="flex flex-col space-y-3">
+                    <Skeleton style={{ width: "100%", height: "150px", margin: "20px 0" }} />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-[80%]" />
+                      <Skeleton className="h-4 w-[60%]" />
+                    </div>
+                  </div>
+                </CardContent>
+              </>
+            ) : (
+              <>
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <DayPicker
+                        showOutsideDays={true}
+                        defaultMonth={subMonths(new Date(), 1)}
+                        style={{
+                          "--rdp-cell-size": "90px",
+                          "--rdp-caption-font-size": "30px",
+                          "--rdp-background-color": "#f3f4f6",
+                          "fontSize": "22px"
+                        }}
+                        classNames={{
+                          nav_button: cn(
+                            buttonVariants({ variant: "outline" }),
+                            "h-10 w-10"
+                          ),
+                          day: cn(
+                            buttonVariants({ variant: "ghost" }),
+                            "h-16 w-16 active:font-bold hover:font-bold"
+                          )
+                        }}
+                        locale={fr}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("1900-01-01")
+                        }
+                        numberOfMonths={2}
+                        onDayClick={handleDayClick}
+                        onDayMouseEnter={handleDayMouseEnter}
+                        onDayMouseLeave={() => setHoveredDate(undefined)}
+                        modifiers={{
+                          rate_0: zeroRateDays,
+                          rate_1: oneRateDays,
+                          rate_2: twoRateDays,
+                          rate_3: threeRateDays,
+                          rate_4: fourRateDays,
+                          rate_5: fiveRateDays,
+                          rate_6: sixRateDays,
+                          rate_7: sevenRateDays,
+                          rate_8: eightRateDays,
+                          rate_9: nineRateDays,
+                          rate_10: tenRateDays
+                        }}
+                        modifiersStyles={{
+                          rate_0: zeroRateStyle,
+                          rate_1: oneRateStyle,
+                          rate_2: twoRateStyle,
+                          rate_3: threeRateStyle,
+                          rate_4: fourRateStyle,
+                          rate_5: fiveRateStyle,
+                          rate_6: sixRateStyle,
+                          rate_7: sevenRateStyle,
+                          rate_8: eightRateStyle,
+                          rate_9: nineRateStyle,
+                          rate_10: tenRateStyle
+                        }}
+                      />
+                    </TooltipTrigger>
+                    {hoveredDate && (
+                      <TooltipContent side="bottom" align="center"
+                                      style={{
+                                        borderColor: getDayTextColor(selectedDay?.rate || -1),
+                                        backgroundColor: getDayColor(selectedDay?.rate || -1),
+                                        fontSize: "x-large",
+                                        padding: 15
+                                      }}>
+                        {format(hoveredDate, "EEEE d MMMM", { locale: fr }).charAt(0).toUpperCase() + format(hoveredDate, "EEEE d MMMM", { locale: fr }).slice(1)} {selectedDay !== undefined ? <>: <b
+                        style={{ color: getDayTextColor(selectedDay?.rate || -1) }}>{selectedDay?.rate || -1}/10</b></> : ""}
+                        <TooltipArrow />
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              </>
+            )}
           </Card>
           <DialogContent style={{ borderWidth: "3px", borderColor: getDayColor(selectedDay?.rate || -1) }}
                          onInteractOutside={handleCloseClick}
@@ -238,11 +244,11 @@ function CalendarView() {
                 <DialogHeader>
                   <DialogTitle>Résumé de la journée</DialogTitle>
                   <DialogDescription>Voici votre résumé de la journée
-                    du {format(parseISO(selectedDay?.date || ""), "EEEE d MMMM yyyy", { locale: fr })}</DialogDescription>
+                    du {format(selectedDay?.date, "EEEE d MMMM yyyy", { locale: fr })}</DialogDescription>
                 </DialogHeader>
-                <div className={"flex justify-start flex-col "}>
-                  <div className="flex justify-between items-center px-4 py-3">
-                    <div className="flex space-x-2">
+                <div id={"resume"} className={"flex justify-start flex-col "}>
+                  <div id={"infos"} className="flex justify-between items-center space-x-2 pr-4">
+                    <div id={"tags"} className="flex gap-2 flex-wrap">
                       {selectedDay?.tags.map((tag, index) => {
                         const hue = Math.floor(Math.random() * 361)
                         const backgroundColor = `hsl(${hue}, 80%, 80%)`
@@ -269,19 +275,26 @@ function CalendarView() {
                   {selectedDay?.short_summary}
                 </div>
                 <DialogFooter>
-                  <Button variant={"secondary"} onClick={handleCloseClick}>Fermer</Button>
+                  <div className="flex justify-between items-center space-x-5">
+                    <Button variant={"secondary"} onClick={() => navigate("/dailyNote", { state: { selectedDate } })}>Accedé
+                      à votre résumé</Button>
+                    <Button variant={"destructive"} onClick={handleCloseClick}>Fermer</Button>
+                  </div>
                 </DialogFooter>
               </>
             ) : (
               <>
                 <DialogHeader>
                   <DialogTitle>Pas d'information</DialogTitle>
-                  <DialogDescription>Vous n'avez pas encore renseigné d'information pour
-                    aujourd'hui.</DialogDescription>
+                  <DialogDescription>
+                    {selectedDate ?
+                      `Vous n'avez pas encore renseigné d'information la journée du ${format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}.`
+                      : "Vous n'avez pas encore renseigné d'information la journée selectionnée."
+                    }</DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                  <Button variant={"default"} onClick={() => navigate("/dailyNote")}>Aller à la page dailyNote</Button>
-                </DialogFooter>
+                  <Button variant={"default"} onClick={() => navigate("/dailyNote", { state: { selectedDate } })}>Renseigner
+                    votre journée</Button> </DialogFooter>
               </>
             )}
           </DialogContent>

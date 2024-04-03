@@ -73,6 +73,7 @@ export default function Profile() {
 
   const disconnectAccount = () => {
     setUserId("");
+    localStorage.removeItem("userId");
     navigate("/auth");
   };
 

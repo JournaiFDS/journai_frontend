@@ -5,7 +5,6 @@ import { UserContext } from "./userContext.tsx"
 export default function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { userId } = useContext(UserContext);
   const isAuthenticated = userId !== "";
-  console.log(isAuthenticated)
   const location = useLocation();
 
   return isAuthenticated ? (
