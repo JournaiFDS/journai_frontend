@@ -5,7 +5,7 @@ export type JournalEntry = {
   tags: string[]
 }
 
-export async function createJournalEntry(name: string, summary: string) {
+export async function createJournalEntry(name: string, summary: string, date: Date) {
   try {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
@@ -19,6 +19,7 @@ export async function createJournalEntry(name: string, summary: string) {
       body: JSON.stringify({
         name,
         summary,
+        date
       }),
     }).then((r) => r.json())) as JournalEntry
   } catch (e: unknown) {

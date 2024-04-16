@@ -10,7 +10,7 @@ export default function Profile() {
   const [db, setDb] = useState<IDBDatabase | null>(null); // Add setDb
   const [username, setUsername] = useState("");
   const [age, setAge] = useState(0);
-  const { userId, setUserId } = useContext(UserContext);
+  const { userName, setuserName } = useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,10 +37,10 @@ export default function Profile() {
   }, [])
 
   useEffect(() => {
-    if (!db || !userId) return;
+    if (!db || !userName) return;
     const transaction = db.transaction(["users"], "readonly");
     const store = transaction.objectStore("users");
-    const request = store.get(Number(userId));
+    const request = store.get(Number(userName));
 
     request.onsuccess = (event: any) => {
       const user = event.target.result;
@@ -50,10 +50,10 @@ export default function Profile() {
         setAge(age);
       }
     };
-  }, [db, userId]);
+  }, [db, userName]);
 
   const deleteAccount = () => {
-    if (!db || !userId) return;
+    if (!db || !userName) return;
     const transaction = db.transaction(["users"], "readwrite");
     const store = transaction.objectStore("users");
     const index = store.index("username");
@@ -64,7 +64,7 @@ export default function Profile() {
       if (user) {
         const deleteRequest = store.delete(user.id);
         deleteRequest.onsuccess = () => {
-          setUserId("");
+          setuserName("");
           navigate("/auth");
         };
       }
@@ -72,8 +72,8 @@ export default function Profile() {
   };
 
   const disconnectAccount = () => {
-    setUserId("");
-    localStorage.removeItem("userId");
+    setuserName("");
+    localStorage.removeItem("userName");
     navigate("/auth");
   };
 

@@ -10,8 +10,7 @@ import {
 } from "shadcn/components/dialog"
 import { Textarea } from "shadcn/components/textarea"
 import { Button } from "shadcn/components/button"
-import { UserContext } from "../component/userContext.tsx"
-import { format, parseISO } from "date-fns"
+import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Loader2 } from "lucide-react"
@@ -19,64 +18,47 @@ import { getDayTextColor } from "../utils/utils.tsx"
 import { Badge } from "shadcn/components/badge.tsx"
 import { Separator } from "shadcn/components/separator.tsx"
 import { Skeleton } from "shadcn/components/skeleton.tsx"
-
-interface AnalysisResult {
-  date: string;
-  day_summary: string;
-  rate: number;
-  tags: string[];
-  short_summary: string;
-}
+import { createJournalEntry, JournalEntry, listJournalEntries } from "../utils/api.ts"
+import { UserContext } from "../component/userContext.tsx"
 
 function DailyNote() {
+  const { userName } = useContext(UserContext)
   const [text, setText] = useState("")
-  const [db, setDb] = useState<IDBDatabase | null>(null)
   const [isLoadingData, setIsLoadingData] = useState(true)
   const [canSubmit, setCanSubmit] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const navigate = useNavigate()
-  const { userId } = useContext(UserContext)
   const [isLoading, setIsLoading] = useState(false)
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
-  const [userNotes, setUserNotes] = useState<AnalysisResult>()
+  const [analysisResult, setAnalysisResult] = useState<JournalEntry | undefined>()
+  const [userNotes, setUserNotes] = useState<JournalEntry>()
   const location = useLocation()
   const [currentDate] = useState<Date>((location.state?.selectedDate) || new Date())
 
   useEffect(() => {
-    const initializeDB = async () => {
-      const request = indexedDB.open("myDatabase", 1)
-      request.onsuccess = (event: any) => {
-        setDb(event.target.result)
-        if (userId !== "") {
+    setIsLoadingData(true)
+    listJournalEntries()
+      .then(entries => {
+        if (!userName) return
+        if (entries) {
+          let userNote: JournalEntry | undefined
+          userNote = entries.find(entry => format(entry.date, "yyyy-MM-dd") === format(currentDate, "yyyy-MM-dd"))
+          if (userNote) {
+            setUserNotes(userNote)
+            setCanSubmit(false)
+          } else {
+            setCanSubmit(true)
+          }
           setIsLoadingData(false)
-        }
-      }
-    }
-    initializeDB()
-  }, [userId])
-
-  useEffect(() => {
-    if (!db || !userId) return
-    try {
-      const transaction = db.transaction(["dailyNotes"], "readonly")
-      const store = transaction.objectStore("dailyNotes")
-      const index = store.index("userId")
-      const request = index.getAll(userId)
-
-      request.onsuccess = (event: any) => {
-        const userNotesArray = event.target.result
-        const userNote = userNotesArray.find(note => format(note.date, "yyyy-MM-dd") === format(currentDate, "yyyy-MM-dd"))
-        if (userNote) {
-          setUserNotes(userNote)
-          setCanSubmit(false)
         } else {
+          setIsLoadingData(false)
           setCanSubmit(true)
         }
-      }
-    } catch (error) {
-      console.error("Erreur lors de la récupération des données de l'utilisateur:", error)
-    }
-  }, [db, userId, currentDate])
+      })
+      .catch(error => {
+        console.error("Erreur lors de la récupération des données:", error)
+        setIsLoadingData(false)
+      })
+  }, [currentDate])
 
   const handleChange = (event: any) => {
     setText(event.target.value)
@@ -84,24 +66,6 @@ function DailyNote() {
 
   const handleCloseClick = () => {
     setIsDialogOpen(false)
-  }
-
-  function simulateBackendCall() {
-    return new Promise<AnalysisResult>((resolve) => {
-      setTimeout(() => {
-        const randomRate = Math.floor(Math.random() * 11)
-        const tags = ["Sport", "Travail", "Loisirs", "Famille", "Amis"]
-        const randomTags = Array.from({ length: (Math.floor(Math.random() * (tags.length + 1)) + 1) }, () => tags[Math.floor(Math.random() * tags.length)])
-        const short_summary = "Ceci est un résumé généré aléatoirement."
-        resolve({
-          date: format(currentDate, "yyyy-MM-dd"),
-          day_summary: text,
-          rate: randomRate,
-          tags: randomTags,
-          short_summary: short_summary
-        })
-      }, 2000) // Simule un délai de 2 secondes
-    })
   }
 
   const handleSubmit = (event: any) => {
@@ -115,59 +79,17 @@ function DailyNote() {
 
     // Créer l'objet à envoyer au serveur
     const dataSent = {
-      userId: userId,
+      name: userName,
       summary: text,
       date: currentDate
     }
 
-// Effectuer l'appel au backend
-    /*
-    fetch("http://localhost:3000", {
-    method: "POST",
-      headers:{  "Content-Type":  "application/json"},body: JSON.stringify(data)})
-      .then(response => response.json())
-    .then(data => {
-      // Si la requête a réussi, ajouter les données retournées à la base de données de l'utilisateur
-      if (db && userId) {
-        const transaction = db.transaction(["users"], "readwrite")
-        const store = transaction.objectStore("users")
-        const request = store.get(userId)
-        request.onsuccess = (event: any) => {
-          const user = event.target.result
-          user.dailyData[format(currentDate, "yyyy-MM-dd")] = data
-          store.put(user)
-        }
+    // Effectuer l'appel au backend
+    createJournalEntry(dataSent.name, dataSent.summary, dataSent.date)
+      .then(data => {
         // Ouvrir le Dialog
         setIsDialogOpen(true)
         setAnalysisResult(data)
-      }
-    })
-    */
-    simulateBackendCall()
-      .then(data => {
-        // Si la requête a réussi, ajouter les données retournées à la base de données de l'utilisateur
-        if (db && userId) {
-          const transaction = db.transaction(["dailyNotes"], "readwrite")
-          const store = transaction.objectStore("dailyNotes")
-          const request = store.add({
-            userId: userId,
-            day_summary: data.day_summary,
-            date: currentDate,
-            rate: data.rate,
-            tags: data.tags,
-            short_summary: data.short_summary
-          })
-
-          request.onsuccess = () => {
-            // Ouvrir le Dialog
-            setIsDialogOpen(true)
-            setAnalysisResult(data)
-          }
-
-          request.onerror = (event: any) => {
-            console.error("Erreur lors de l'ajout de la note quotidienne:", event.target.error)
-          }
-        }
       })
       .catch(error => {
         console.error("Erreur lors de l'appel au backend:", error)
@@ -232,7 +154,7 @@ function DailyNote() {
                     value={text}
                     required={true}
                     id={"summary"}
-                    placeholder={userNotes?.day_summary || "Aujourd'hui, j'ai..."}
+                    placeholder={userNotes?.short_summary || "Aujourd'hui, j'ai..."}
                     disabled={!canSubmit || isLoading}
                     onChange={handleChange}
                     style={{ width: "100%", height: "150px", margin: "20px 0" }}
@@ -260,7 +182,7 @@ function DailyNote() {
               <DialogHeader>
                 <DialogTitle>Résumé de la journée</DialogTitle>
                 <DialogDescription>Voici votre résumé de la journée
-                  du {format(parseISO(analysisResult.date || ""), "EEEE d MMMM yyyy", { locale: fr })}</DialogDescription>
+                  du {format(analysisResult.date || "", "EEEE d MMMM yyyy", { locale: fr })}</DialogDescription>
               </DialogHeader>
               <div id={"resume"} className={"flex justify-start flex-col "}>
                 <div id={"infos"} className="flex justify-between items-center space-x-2 pr-4">

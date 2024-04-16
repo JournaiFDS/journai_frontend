@@ -3,8 +3,8 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { UserContext } from "./userContext.tsx"
 
 export default function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { userId } = useContext(UserContext);
-  const isAuthenticated = userId !== "";
+  const { userName } = useContext(UserContext);
+  const isAuthenticated = userName !== "";
   const location = useLocation();
 
   return isAuthenticated ? (

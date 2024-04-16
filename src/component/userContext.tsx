@@ -1,15 +1,15 @@
 import React from "react"
 
 export const UserContext = React.createContext<{
-  userId: string;
-  setUserId: React.Dispatch<React.SetStateAction<string>>;
+  userName: string;
+  setuserName: React.Dispatch<React.SetStateAction<string>>;
 }>({
-  userId: "",
-  setUserId: () => {
+  userName: "",
+  setuserName: () => {
   }
 })
 
-export const setUser = (userId: string, setUserId: React.Dispatch<React.SetStateAction<string>>) => {
-  localStorage.setItem("userId", userId)
-  setUserId(userId)
+export const setUser = (userName: string, setuserName: React.Dispatch<React.SetStateAction<string>>) => {
+  localStorage.setItem("userName", userName)
+  setuserName(userName)
 }

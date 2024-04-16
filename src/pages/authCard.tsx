@@ -57,7 +57,7 @@ export default function AuthCard() {
   const [db, setDb] = useState<IDBDatabase | null>(null)
   const [activeTab, setActiveTab] = useState("login")
   const navigate = useNavigate()
-  const { setUserId } = useContext(UserContext)
+  const { setuserName } = useContext(UserContext)
 
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function AuthCard() {
           const database = event.target.result
 
           if (!database.objectStoreNames.contains('users')) {
-            const objectStore = database.createObjectStore("users", { keyPath: "userId", autoIncrement: true });
+            const objectStore = database.createObjectStore("users", { keyPath: "userName", autoIncrement: true });
             objectStore.createIndex("username", "username", { unique: true });
             objectStore.createIndex("password", "password", { unique: false });
             objectStore.createIndex("birthdate", "birthdate", { unique: false });
@@ -87,7 +87,7 @@ export default function AuthCard() {
 
           if (!database.objectStoreNames.contains('dailyNotes')) {
             const dailyNotesStore = database.createObjectStore("dailyNotes", { keyPath: "noteId", autoIncrement: true });
-            dailyNotesStore.createIndex("userId", "userId", { unique: false });
+            dailyNotesStore.createIndex("userName", "userName", { unique: false });
             dailyNotesStore.createIndex("date", "date", { unique: false });
             dailyNotesStore.createIndex("day_summary", "day_summary", { unique: false });
             dailyNotesStore.createIndex("rate", "rate", { unique: false });
@@ -161,7 +161,7 @@ export default function AuthCard() {
     request.onsuccess = (event: any) => {
       const user = event.target.result
       if (user && user.password === password) {
-        setUser(user.userId, setUserId);
+        setUser(user.userName, setuserName);
         toast("Connexion réussie", {
           description: `Le ${new Date().toLocaleDateString()}, à ${new Date().toLocaleTimeString()}`,
           action: {

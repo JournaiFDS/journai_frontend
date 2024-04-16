@@ -13,7 +13,7 @@ import { UserContext } from "../component/userContext.tsx"
 import { useContext } from "react"
 
 export default function Layout() {
-  const { userId } = useContext(UserContext)
+  const { userName } = useContext(UserContext)
 
   return (
     <div className="h-screen flex flex-col">
@@ -39,7 +39,7 @@ export default function Layout() {
         </NavigationMenu>
         <NavigationMenu>
           <NavigationMenuList className="flex space-x-10">
-            {userId !== "" && (
+            {userName !== "" && (
               <NavigationMenuItem>
                 <Link to="/profile" className={buttonVariants({ variant: "ghost" })}>
                   <FaUser style={{ fill: "#7c3aed" }} />

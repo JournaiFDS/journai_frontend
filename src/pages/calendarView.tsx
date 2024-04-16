@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react"
+import { useContext, useEffect, useState } from "react"
 import { format, subMonths } from "date-fns"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "shadcn/components/tooltip"
 import {
@@ -23,59 +23,38 @@ import { useNavigate } from "react-router-dom"
 import { getDayColor, getDayTextColor } from "../utils/utils.tsx"
 import { UserContext } from "../component/userContext.tsx"
 import { Skeleton } from "shadcn/components/skeleton.tsx"
-
-type DayData = {
-  date: string;
-  day_summary: string;
-  rate: number;
-  short_summary: string;
-  tags: string[];
-};
+import { JournalEntry, listJournalEntries } from "../utils/api.ts"
 
 function CalendarView() {
-  const [db, setDb] = useState<IDBDatabase | null>(null)
-  const { userId } = useContext(UserContext)
+  const { userName } = useContext(UserContext)
   const [isLoadingData, setIsLoadingData] = useState(true)
-  const [dailyData, setDailyData] = useState<DayData[]>()
+  const [dailyData, setDailyData] = useState<JournalEntry[]>()
   const [hoveredDate, setHoveredDate] = useState<Date>()
   const [selectedDate, setSelectedDate] = useState<Date>()
-  const [selectedDay, setSelectedDay] = useState<DayData>()
+  const [selectedDay, setSelectedDay] = useState<JournalEntry>()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
-    const initializeDB = async () => {
-      const request = indexedDB.open("myDatabase", 1)
-      request.onsuccess = (event: any) => {
-        setDb(event.target.result)
-        if (userId !== "") {
-          setIsLoadingData(false)
-        }
-      }
-    }
-    initializeDB()
-  }, [userId])
-
-  useEffect(() => {
     const fetchDailyNotes = async () => {
-      if (!db || !userId) return
-      const transaction = db.transaction(["dailyNotes"], "readonly")
-      const store = transaction.objectStore("dailyNotes")
-      const index = store.index("userId")
-      const request = index.getAll(IDBKeyRange.only(userId))
-
-      request.onsuccess = (event: any) => {
-        const dailyNotes = event.target.result
-        setDailyData(dailyNotes)
-      }
-
-      request.onerror = (event: any) => {
-        console.error("Erreur lors de la récupération des notes quotidiennes:", event.target.error)
-      }
+      if (!userName) return
+      setIsLoadingData(true)
+      listJournalEntries()
+        .then(entries => {
+          if (entries) {
+            setDailyData(entries)
+            setIsLoadingData(false)
+          } else {
+            setIsLoadingData(false)
+          }
+        })
+        .catch(error => {
+          console.error("Erreur lors de la récupération des notes quotidiennes:", error)
+          setIsLoadingData(false)
+        })
     }
-
     fetchDailyNotes()
-  }, [db, userId])
+  }, [userName])
 
   const getDayStyle = (rate: number) => {
     const backgroundColor = getDayColor(rate)
@@ -131,6 +110,7 @@ function CalendarView() {
     setIsDialogOpen(false)
   }
 
+  // @ts-ignore
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "90%" }}>
       <div className="flex justify-center items-center">

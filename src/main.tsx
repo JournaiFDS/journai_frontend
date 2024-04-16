@@ -58,11 +58,11 @@ const router = createBrowserRouter([
 ])
 
 export const Main = () => {
-  const [userId, setUserId] = useState(localStorage.getItem("userId") || "")
+  const [userName, setuserName] = useState(localStorage.getItem("userName") || "")
 
   useEffect(() => {
     const handleStorageChange = () => {
-      setUserId(localStorage.getItem("userId") || "")
+      setuserName(localStorage.getItem("userName") || "")
     }
 
     window.addEventListener("storage", handleStorageChange)
@@ -74,7 +74,7 @@ export const Main = () => {
 
   return (
     <React.StrictMode>
-      <UserContext.Provider value={{ userId, setUserId }}>
+      <UserContext.Provider value={{ userName, setuserName }}>
         <RouterProvider router={router} />
       </UserContext.Provider>
     </React.StrictMode>
