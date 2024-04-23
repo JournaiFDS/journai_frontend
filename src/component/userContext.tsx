@@ -2,10 +2,10 @@ import React from "react"
 
 export const UserContext = React.createContext<{
   userName: string;
-  setuserName: React.Dispatch<React.SetStateAction<string>>;
+  setUserName: React.Dispatch<React.SetStateAction<string>>;
 }>({
   userName: "",
-  setuserName: () => {
+  setUserName: () => {
   }
 })
 

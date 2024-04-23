@@ -18,7 +18,7 @@ import { getDayTextColor } from "../utils/utils.ts"
 import { Badge } from "shadcn/components/badge.tsx"
 import { Separator } from "shadcn/components/separator.tsx"
 import { Skeleton } from "shadcn/components/skeleton.tsx"
-import { createJournalEntry, JournalEntry, listJournalEntries } from "../utils/api.ts"
+import { createJournalEntry, deleteDay, JournalEntry, listJournalEntries } from "../utils/api.ts"
 import { UserContext } from "../component/userContext.tsx"
 
 function DailyNote() {
@@ -40,8 +40,7 @@ function DailyNote() {
       .then(entries => {
         if (!userName) return
         if (entries) {
-          let userNote: JournalEntry | undefined
-          userNote = entries.find(entry => format(entry.date, "yyyy-MM-dd") === format(currentDate, "yyyy-MM-dd"))
+          const userNote = entries.find(entry => format(entry.date, "yyyy-MM-dd") === format(currentDate, "yyyy-MM-dd"))
           if (userNote) {
             setUserNotes(userNote)
             setCanSubmit(false)
@@ -67,6 +66,41 @@ function DailyNote() {
   const handleCloseClick = () => {
     setIsDialogOpen(false)
   }
+
+
+  const handleSubmitDelete = (event: any) => {
+    event.preventDefault()
+    if (canSubmit) {
+      alert("Vous n'avez pas encore fait de résumé pour cette journée.")
+      return
+    }
+
+    setIsLoading(true)
+
+    // Créer l'objet à envoyer au serveur
+    const dataSent = {
+      date: currentDate
+    }
+
+    // Effectuer l'appel au backend
+    deleteDay(dataSent.date)
+      .then(response => {
+        if (response && response.ok) {
+          setCanSubmit(true)
+          setUserNotes(undefined)
+        } else {
+          console.error("La requête n'a pas abouti avec le statut:", response?.status)
+        }
+      })
+      .catch(error => {
+        console.error("Erreur lors de l'appel au backend:", error)
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
+
+  }
+
 
   const handleSubmit = (event: any) => {
     event.preventDefault()
@@ -165,14 +199,21 @@ function DailyNote() {
                 {isLoading ? (
                   <Button disabled>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyse en cours
+                    {canSubmit ? "Analyse en cours" : "Suppression en cours"}
                   </Button>
                 ) : (
-                  <Button onClick={handleSubmit} disabled={!canSubmit || text.length === 0}>
-                    🔬 Analyser la journée
-                  </Button>
+                  canSubmit ? (
+                    <Button onClick={handleSubmit} disabled={!canSubmit || text.length === 0}>
+                      🔬 Analyser la journée
+                    </Button>
+                  ) : (
+                    <Button onClick={handleSubmitDelete} className="bg-red-500 text-white hover:bg-red-600">
+                      🗑️ Supprimer la journée
+                    </Button>
+                  )
                 )}
               </CardFooter>
+
             </>
           )}
         </Card>

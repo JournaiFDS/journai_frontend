@@ -74,7 +74,7 @@ export const Main = () => {
 
   return (
     <React.StrictMode>
-      <UserContext.Provider value={{ userName, setuserName }}>
+      <UserContext.Provider value={{ userName, setUserName: setuserName }}>
         <RouterProvider router={router} />
       </UserContext.Provider>
     </React.StrictMode>

@@ -57,7 +57,7 @@ export default function AuthCard() {
   const [db, setDb] = useState<IDBDatabase | null>(null)
   const [activeTab, setActiveTab] = useState("login")
   const navigate = useNavigate()
-  const { setuserName } = useContext(UserContext)
+  const { setUserName } = useContext(UserContext)
 
 
   useEffect(() => {
@@ -159,9 +159,11 @@ export default function AuthCard() {
     const request = index.get(username)
 
     request.onsuccess = (event: any) => {
+      console.log(event.target)
+
       const user = event.target.result
       if (user && user.password === password) {
-        setUser(user.userName, setuserName);
+        setUser(user.username, setUserName);
         toast("Connexion réussie", {
           description: `Le ${new Date().toLocaleDateString()}, à ${new Date().toLocaleTimeString()}`,
           action: {

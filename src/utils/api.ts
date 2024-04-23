@@ -66,7 +66,8 @@ export async function deleteDay(date: Date) {
       body: JSON.stringify({
         date: `${year}-${month < 10 ? "0" + month : month}-${day < 10 ? "0" + day : day}`,
       }),
-    })
+    });
+
   } catch (e: unknown) {
     console.error(e)
   }
