@@ -14,7 +14,7 @@ import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { useLocation, useNavigate } from "react-router-dom"
 import { Loader2 } from "lucide-react"
-import { getDayTextColor } from "../utils/utils.tsx"
+import { getDayTextColor } from "../utils/utils.ts"
 import { Badge } from "shadcn/components/badge.tsx"
 import { Separator } from "shadcn/components/separator.tsx"
 import { Skeleton } from "shadcn/components/skeleton.tsx"
@@ -35,6 +35,8 @@ function DailyNote() {
   const [currentDate] = useState<Date>((location.state?.selectedDate) || new Date())
 
   useEffect(() => {
+    console.log(import.meta.env.VITE_API);
+
     setIsLoadingData(true)
     listJournalEntries()
       .then(entries => {

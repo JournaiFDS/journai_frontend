@@ -9,12 +9,12 @@ export async function createJournalEntry(name: string, summary: string, date: Da
   try {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    return (await fetch(process.env.API, {
+    return (await fetch(import.meta.env.VITE_API, {
       method: "POST",
       mode: "no-cors",
       headers: {
         "Content-Type": "application/json",
-        Accept: "*/*",
+        Accept: "application/json",
       },
       body: JSON.stringify({
         name,
@@ -31,12 +31,12 @@ export async function listJournalEntries() {
   try {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    return (await fetch(process.env.API, {
+    return (await fetch(import.meta.env.VITE_API, {
       method: "GET",
       mode: "no-cors",
       headers: {
         "Content-Type": "application/json",
-        Accept: "*/*",
+        Accept: "application/json",
       },
     }).then((r) => r.json())) as JournalEntry[]
   } catch (e: unknown) {
@@ -52,12 +52,12 @@ export async function deleteDay(date: Date) {
   try {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
-    return await fetch(process.env.API, {
+    return await fetch(import.meta.env.VITE_API, {
       method: "DELETE",
       mode: "no-cors",
       headers: {
         "Content-Type": "application/json",
-        Accept: "*/*",
+        Accept: "application/json",
       },
       body: JSON.stringify({
         date: `${year}-${month < 10 ? "0" + month : month}-${day < 10 ? "0" + day : day}`,

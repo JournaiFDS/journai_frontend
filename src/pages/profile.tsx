@@ -40,7 +40,8 @@ export default function Profile() {
     if (!db || !userName) return;
     const transaction = db.transaction(["users"], "readonly");
     const store = transaction.objectStore("users");
-    const request = store.get(Number(userName));
+    console.log(userName)
+    const request = store.get(userName);
 
     request.onsuccess = (event: any) => {
       const user = event.target.result;
