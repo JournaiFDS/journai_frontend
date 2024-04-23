@@ -35,8 +35,6 @@ function DailyNote() {
   const [currentDate] = useState<Date>((location.state?.selectedDate) || new Date())
 
   useEffect(() => {
-    console.log(import.meta.env.VITE_API);
-
     setIsLoadingData(true)
     listJournalEntries()
       .then(entries => {

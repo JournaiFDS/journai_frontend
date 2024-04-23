@@ -7,11 +7,15 @@ export type JournalEntry = {
 
 export async function createJournalEntry(name: string, summary: string, date: Date) {
   try {
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1 // Adding 1 because getMonth() returns 0-based index
+    const day = date.getDate()
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     return (await fetch(import.meta.env.VITE_API, {
       method: "POST",
-      mode: "no-cors",
+      mode: "cors",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -19,7 +23,7 @@ export async function createJournalEntry(name: string, summary: string, date: Da
       body: JSON.stringify({
         name,
         summary,
-        date
+        date: `${year}-${month < 10 ? "0" + month : month}-${day < 10 ? "0" + day : day}`
       }),
     }).then((r) => r.json())) as JournalEntry
   } catch (e: unknown) {
@@ -33,7 +37,7 @@ export async function listJournalEntries() {
     // @ts-expect-error
     return (await fetch(import.meta.env.VITE_API, {
       method: "GET",
-      mode: "no-cors",
+      mode: "cors",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -54,7 +58,7 @@ export async function deleteDay(date: Date) {
     // @ts-expect-error
     return await fetch(import.meta.env.VITE_API, {
       method: "DELETE",
-      mode: "no-cors",
+      mode: "cors",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
