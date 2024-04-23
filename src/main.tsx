@@ -1,9 +1,14 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import ReactDOM from "react-dom/client"
 import "./index.css"
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
-import Index from "./pages"
-import Layout from "./layouts/layout"
+import PrivateRoute from "./component/privateRoute.tsx"
+import Layout from "./layouts/layout.tsx"
+import DailyNote from "./pages/dailyNote.tsx"
+import AuthCard from "./pages/authCard.tsx"
+import Profile from "./pages/profile.tsx"
+import { UserContext } from "./component/userContext.tsx"
+import CalendarView from "./pages/calendarView.tsx"
 
 const router = createBrowserRouter([
   {
@@ -12,15 +17,68 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Index />,
+        element: (
+          <PrivateRoute>
+            <DailyNote />
+          </PrivateRoute>
+        )
       },
-    ],
+      {
+        path: "auth",
+        element:
+          <AuthCard />
+      },
+      {
+        path: "profile",
+        element: (
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        )
+      },
+      {
+        path: "dailyNote",
+        element: (
+          <PrivateRoute>
+            <DailyNote />
+          </PrivateRoute>
+        )
+      },
+      {
+        path: "calendarView",
+        element: (
+          <PrivateRoute>
+            <CalendarView />
+          </PrivateRoute>
+        )
+      }
+    ]
   },
-  {},
+  {}
 ])
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>,
-)
+export const Main = () => {
+  const [userName, setuserName] = useState(localStorage.getItem("userName") || "")
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setuserName(localStorage.getItem("userName") || "")
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange)
+    }
+  }, [])
+
+  return (
+    <React.StrictMode>
+      <UserContext.Provider value={{ userName, setUserName: setuserName }}>
+        <RouterProvider router={router} />
+      </UserContext.Provider>
+    </React.StrictMode>
+  )
+}
+
+ReactDOM.createRoot(document.getElementById("root")!).render(<Main />)
